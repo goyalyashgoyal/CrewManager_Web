@@ -283,11 +283,9 @@ button {
 
 /* Dashboard Styles */
 .dashboard-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: var(--background-color);
-    min-height: 100vh;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .dashboard-header {
@@ -319,9 +317,7 @@ button {
     position: sticky;
     top: 0;
     z-index: 100;
-    padding: 0.5rem 1rem;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    padding: 0.5rem 0;
 }
 
 .nav-container {
@@ -331,6 +327,7 @@ button {
     justify-content: space-between;
     align-items: center;
     min-width: max-content;
+    padding: 0 1rem;
 }
 
 .nav-left ul {
@@ -392,21 +389,31 @@ button {
 }
 
 .dashboard-nav a.active {
-    background: none;
-    color: var(--primary-color);
-}
-
-.dashboard-nav a.active i {
     background: var(--primary-color);
     color: white;
 }
 
-.dashboard-nav a:hover {
+.dashboard-nav a.active i {
+    background: transparent;
+    color: white;
+}
+
+.dashboard-nav a:hover:not(.active) {
     background: var(--hover-color);
 }
 
-.dashboard-nav a:hover i {
+.dashboard-nav a:hover:not(.active) i {
     background: var(--hover-color);
+}
+
+.dashboard-nav a.active:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.dashboard-nav a.active:hover i {
+    background: transparent;
+    color: white;
 }
 
 .dashboard-grid {
@@ -414,6 +421,7 @@ button {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
     margin-bottom: 2rem;
+    padding: 2rem;
 }
 
 .dashboard-card {
@@ -456,6 +464,7 @@ button {
     padding: 2rem;
     box-shadow: var(--card-shadow);
     margin-top: 2rem;
+    margin: 2rem;
 }
 
 .user-info-card {
@@ -484,7 +493,7 @@ button {
 /* Responsive Dashboard */
 @media (max-width: 768px) {
     .dashboard-container {
-        padding: 1rem;
+        padding: 0;
     }
     
     .dashboard-header {
@@ -535,6 +544,19 @@ button {
     .nav-left::-webkit-scrollbar-thumb {
         background: var(--accent-color);
         border-radius: 2px;
+    }
+
+    .settings-content {
+        margin-left: 60px;
+        padding: 1rem;
+    }
+
+    .dashboard-grid {
+        padding: 1rem;
+    }
+
+    .user-profile-card {
+        margin: 1rem;
     }
 }
 
@@ -716,8 +738,9 @@ input:hover {
 /* Settings Layout */
 .settings-layout {
     display: flex;
-    height: calc(100vh - 60px); /* Adjust based on your nav height */
+    height: calc(100vh - 53px);
     background: var(--background-color);
+    margin: 0;
 }
 
 .settings-sidebar {
@@ -726,6 +749,7 @@ input:hover {
     border-right: 1px solid var(--border-color);
     padding: 1rem 0;
     flex-shrink: 0;
+    margin: 0;
 }
 
 .settings-sidebar ul {
@@ -760,7 +784,7 @@ input:hover {
     color: white;
 }
 
-.settings-sidebar li:hover i {
+.settings-sidebar li:hover:not(.active) i {
     background: var(--hover-color);
 }
 
@@ -772,6 +796,7 @@ input:hover {
     flex: 1;
     padding: 2rem;
     overflow-y: auto;
+    margin: 0;
 }
 
 .settings-panel {
@@ -827,7 +852,7 @@ input:hover {
 
     .settings-sidebar {
         width: 60px;
-        transition: width 0.3s ease;
+        transition: none;
         overflow: hidden;
     }
 
@@ -854,6 +879,7 @@ input:hover {
 
     .settings-content {
         margin-left: 60px;
+        padding: 1rem;
     }
 
     .settings-sidebar li i {
