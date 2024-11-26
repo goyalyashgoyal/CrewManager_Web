@@ -13,7 +13,7 @@ import {
     sendPasswordResetEmail,
     unlink
 } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBoaQHMJ--0C1EVyp8AkMgRLyrYs6Z_uho",
@@ -42,16 +42,27 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
             showLoading();
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                
+            // First, try each role collection until we find the user
+            const roles = ['managers', 'coaches', 'rowers'];
+            let userData = null;
+
+            for (const role of roles) {
+                const roleDoc = await getDoc(
+                    doc(collection(doc(collection(db, "users"), role), "members"), user.uid)
+                );
+                if (roleDoc.exists()) {
+                    userData = roleDoc.data();
+                    break;
+                }
+            }
+
+            if (userData) {
                 // Profile data
                 document.getElementById('firstName').value = userData.firstName || '';
                 document.getElementById('lastName').value = userData.lastName || '';
                 
                 // Account data
-                document.getElementById('userEmail').textContent = user.email || userData.email || 'No email set';
+                document.getElementById('userEmail').textContent = userData.email || 'No email set';
                 document.getElementById('userPhone').textContent = userData.phoneNumber || 'No phone number set';
 
                 // Check if Google account is linked
@@ -65,6 +76,9 @@ onAuthStateChanged(auth, async (user) => {
                     : 'Not linked';
                 document.getElementById('linkGoogle').style.display = isGoogleLinked ? 'none' : 'block';
                 document.getElementById('unlinkGoogle').style.display = isGoogleLinked ? 'block' : 'none';
+
+                // Load invitation codes if user is a manager
+                await loadClubCodes(userData);
             }
         } catch (error) {
             console.error("Error loading user data:", error);
@@ -252,4 +266,93 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-}); 
+});
+
+// Add these functions to settings.js
+async function loadClubCodes(userData) {
+    if (!auth.currentUser) {
+        console.log("No authenticated user");
+        return;
+    }
+
+    try {
+        // Get the invitation codes section
+        const codesPanel = document.getElementById('codes');
+        const codeGroup = codesPanel.querySelector('.code-group');
+
+        // Only show for club managers
+        if (userData.role !== 'club_manager') {
+            codesPanel.style.display = 'none';
+            return;
+        }
+
+        console.log("Club ID:", userData.clubId);
+        const clubDoc = await getDoc(doc(db, "clubs", userData.clubId));
+        
+        if (!clubDoc.exists()) {
+            console.error("Club document not found");
+            return;
+        }
+
+        const clubData = clubDoc.data();
+        console.log("Club data:", clubData);
+
+        // Update the codes content
+        codeGroup.innerHTML = `
+            <div class="code-display">
+                <div class="code-content">
+                    <label>Coach Code:</label>
+                    <span id="coachCode">${clubData.coachCode || 'No code generated'}</span>
+                </div>
+                <button id="generateCoachCode" class="btn-secondary">
+                    Generate New Code
+                </button>
+            </div>
+            <div class="code-display">
+                <div class="code-content">
+                    <label>Rower Code:</label>
+                    <span id="rowerCode">${clubData.rowerCode || 'No code generated'}</span>
+                </div>
+                <button id="generateRowerCode" class="btn-secondary">
+                    Generate New Code
+                </button>
+            </div>
+        `;
+
+        // Add event listeners to the buttons
+        document.getElementById('generateCoachCode').addEventListener('click', () => generateNewCode('coach'));
+        document.getElementById('generateRowerCode').addEventListener('click', () => generateNewCode('rower'));
+
+    } catch (error) {
+        console.error("Error loading club codes:", error);
+    }
+}
+
+// Add the generateNewCode function
+async function generateNewCode(type) {
+    if (!auth.currentUser) return;
+
+    try {
+        const roleDoc = await getDoc(
+            doc(collection(doc(collection(db, "users"), 'managers'), "members"), auth.currentUser.uid)
+        );
+        const userData = roleDoc.data();
+
+        if (userData.role !== 'club_manager') {
+            throw new Error('Unauthorized');
+        }
+
+        const newCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const clubRef = doc(db, "clubs", userData.clubId);
+
+        await updateDoc(clubRef, {
+            [`${type}Code`]: newCode
+        });
+
+        document.getElementById(`${type}Code`).textContent = newCode;
+        alert(`New ${type} code generated successfully!`);
+    } catch (error) {
+        console.error("Error generating new code:", error);
+        alert('Error generating new code');
+    }
+} 

@@ -314,9 +314,11 @@ button {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-color);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 1001;
     padding: 0.5rem 0;
 }
 
@@ -326,8 +328,23 @@ button {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    min-width: max-content;
-    padding: 0 1rem;
+    padding: 0.25rem 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nav-container::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-left {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-bottom: -4px;
 }
 
 .nav-left ul {
@@ -336,6 +353,7 @@ button {
     margin: 0;
     padding: 0;
     list-style: none;
+    gap: 0.5rem;
 }
 
 .nav-left ul li {
@@ -373,7 +391,7 @@ button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
+    padding: 0.6rem 1.25rem;
     position: relative;
     border-radius: 980px;
 }
@@ -493,9 +511,9 @@ button {
 /* Responsive Dashboard */
 @media (max-width: 768px) {
     .dashboard-container {
-        padding: 0;
+        padding-top: 53px; /* Height of nav bar */
     }
-    
+
     .dashboard-header {
         padding: 1rem;
         text-align: center;
@@ -542,7 +560,7 @@ button {
     }
 
     .nav-left::-webkit-scrollbar-thumb {
-        background: var(--accent-color);
+        background: var(--secondary-color);
         border-radius: 2px;
     }
 
@@ -552,11 +570,47 @@ button {
     }
 
     .dashboard-grid {
-        padding: 1rem;
+        padding: 2rem; /* Keep consistent with desktop padding */
+        gap: 2rem; /* Keep consistent with desktop gap */
     }
 
     .user-profile-card {
-        margin: 1rem;
+        margin: 2rem; /* Keep consistent with desktop margin */
+    }
+
+    .dashboard-card {
+        margin: 0;
+        padding: 1.5rem; /* Keep consistent padding */
+    }
+
+    /* Make nav items more compact but maintain readability */
+    .dashboard-nav a {
+        padding: 0.6rem 1.25rem;
+        font-size: 14px;
+    }
+
+    /* Ensure nav container stays full width but maintains padding */
+    .nav-container {
+        width: 100%;
+        min-width: 100%;
+        padding: 0.25rem 1rem;
+    }
+
+    /* Ensure content doesn't touch screen edges */
+    .settings-content {
+        padding: 2rem;
+    }
+}
+
+/* Add specific adjustments for very narrow screens */
+@media (max-width: 480px) {
+    .dashboard-grid {
+        padding: 2rem; /* Maintain consistent padding */
+        gap: 2rem;
+    }
+
+    .user-profile-card {
+        margin: 2rem; /* Maintain consistent margin */
     }
 }
 
@@ -577,10 +631,13 @@ button {
 .spinner {
     width: 40px;
     height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     border: 3px solid var(--background-color);
     border-top: 3px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
+    flex-shrink: 0;
 }
 
 @keyframes spin {
@@ -750,6 +807,7 @@ input:hover {
     padding: 1rem 0;
     flex-shrink: 0;
     margin: 0;
+    z-index: 1000;
 }
 
 .settings-sidebar ul {
@@ -771,12 +829,15 @@ input:hover {
 .settings-sidebar li i {
     width: 32px;
     height: 32px;
+    min-width: 32px;
+    min-height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     background: transparent;
     color: var(--primary-color);
+    flex-shrink: 0;
 }
 
 .settings-sidebar li.active i {
@@ -851,16 +912,18 @@ input:hover {
     }
 
     .settings-sidebar {
+        position: fixed;
+        left: 0;
+        top: 53px; /* Height of nav bar */
+        height: calc(100vh - 53px);
         width: 60px;
-        transition: none;
+        transition: width 0.3s ease;
         overflow: hidden;
+        background: white;
     }
 
     .settings-sidebar.expanded {
         width: 240px;
-        position: absolute;
-        height: 100%;
-        z-index: 10;
         box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
     }
 
@@ -880,29 +943,301 @@ input:hover {
     .settings-content {
         margin-left: 60px;
         padding: 1rem;
+        width: calc(100% - 60px);
     }
 
     .settings-sidebar li i {
-        min-width: 32px;
-        min-height: 32px;
         width: 32px;
         height: 32px;
+        min-width: 32px;
+        min-height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 50%;
         flex-shrink: 0;
+    }
+}
+
+.role-selector {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.role-selector h3 {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.role-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.role-btn {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.role-btn i {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.role-btn i.material-icons {
+    font-size: 2rem; /* Slightly larger for Material Icons */
+}
+
+/* Remove background for specific icons */
+.role-btn i.fa-user {
+    background: none !important;
+}
+
+.role-btn:hover i.fa-user {
+    background: none !important;
+}
+
+.role-btn .role-content {
+    flex: 1;
+}
+
+.role-btn span {
+    font-weight: 600;
+    color: var(--text-color);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.role-description {
+    font-size: 0.85rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.role-btn:hover {
+    border-color: var(--accent-color);
+    background: var(--hover-color);
+    transform: translateY(-1px);
+}
+
+.role-btn.selected {
+    border-color: var(--accent-color);
+    background: rgba(0, 102, 204, 0.1);
+}
+
+.role-form {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .role-buttons {
+        grid-template-columns: 1fr;
+    }
+}
+
+.code-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.code-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--background-color);
+    border-radius: 8px;
+}
+
+.code-display label {
+    font-weight: 600;
+    min-width: 100px;
+}
+
+.code-display span {
+    font-family: monospace;
+    font-size: 1.1rem;
+    padding: 0.25rem 0.5rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.code-display button {
+    margin: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    margin-left: auto;
+    background: var(--primary-color);
+    color: var(--error-color);
+    border: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.code-display button:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .code-display {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
     }
 
-    .dashboard-nav a i {
-        min-width: 32px;
-        min-height: 32px;
-        width: 32px;
-        height: 32px;
+    .code-display label {
+        min-width: 80px;
+    }
+
+    .code-display button {
+        width: auto;
+        margin: 0;
+        white-space: nowrap;
+    }
+
+    .code-display .code-content {
         display: flex;
         align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        flex-shrink: 0;
+        gap: 0.5rem;
+        flex: 1;
     }
+}
+
+#invitation-codes {
+    background: white;
+    border-radius: 18px;
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+#invitation-codes .code-group {
+    margin-top: 1rem;
+}
+
+#invitation-codes .code-display {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: var(--background-color);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+#invitation-codes .code-display label {
+    font-weight: 600;
+    min-width: 100px;
+}
+
+#invitation-codes .code-display span {
+    font-family: monospace;
+    font-size: 1.1rem;
+    padding: 0.25rem 0.5rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+#invitation-codes .code-display button {
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+/* Add padding to account for fixed navbar */
+.dashboard-container {
+    padding-top: 53px; /* Height of nav bar */
+}
+
+.settings-layout {
+    height: calc(100vh - 53px);
+}
+
+.nav-left {
+    scroll-behavior: smooth;
+}
+
+.nav-left::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.95));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.nav-left.scrollable::after {
+    opacity: 1;
+}
+
+@media (max-width: 768px) and (orientation: portrait) {
+    .dashboard-nav {
+        padding: 0; /* Reduce vertical padding */
+    }
+
+    .nav-container {
+        padding: 0.25rem 1rem; /* Reduce vertical padding, keep horizontal */
+    }
+
+    .dashboard-nav a {
+        padding: 0.5rem 1rem; /* Reduce vertical padding on nav items */
+        font-size: 14px;
+    }
+
+    .sign-out-btn {
+        padding: 0.5rem 1rem; /* Match the nav items padding */
+    }
+}
+
+/* Keep the original padding for landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+    .dashboard-nav {
+        padding: 0.5rem 0;
+    }
+
+    .nav-container {
+        padding: 0 1rem;
+    }
+
+    .dashboard-nav a {
+        padding: 0.75rem 1.25rem;
+        font-size: 14px;
+    }
+}
+
+.sf-symbol {
+    font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1.8rem;
+    line-height: 1;
 } 

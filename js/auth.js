@@ -122,17 +122,166 @@ async function signIn(email, password) {
     }
 }
 
-// Update your sign-up function
-async function signUp(email, password, firstName, lastName, phone) {
+// Add role selection functionality
+const roleButtons = document.querySelectorAll('.role-btn');
+const managerForm = document.getElementById('manager-form');
+const memberForm = document.getElementById('member-form');
+let selectedRole = null;
+
+roleButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        // Remove selected class from all buttons
+        roleButtons.forEach(btn => btn.classList.remove('selected'));
+        // Add selected class to clicked button
+        button.classList.add('selected');
+        
+        selectedRole = button.dataset.role;
+        
+        // Show appropriate form
+        if (selectedRole === 'club_manager') {
+            managerForm.style.display = 'block';
+            memberForm.style.display = 'none';
+        } else {
+            managerForm.style.display = 'none';
+            memberForm.style.display = 'block';
+        }
+    });
+});
+
+// Update the registration function
+document.getElementById('submitSignUp').addEventListener('click', async (e) => {
+    e.preventDefault();
+    
+    if (!selectedRole) {
+        showMessage('Please select an account type', 'signUpMessage');
+        return;
+    }
+    
+    showLoading();
+    
+    // Get form values based on role
+    const prefix = selectedRole === 'club_manager' ? 'manager' : 'member';
+    const email = document.getElementById(`${prefix}-email`).value;
+    const password = document.getElementById(`${prefix}-password`).value;
+    const confirmPassword = document.getElementById(`${prefix}-confirmPassword`).value;
+    const firstName = document.getElementById(`${prefix}-firstName`).value;
+    const lastName = document.getElementById(`${prefix}-lastName`).value;
+    const phone = document.getElementById(`${prefix}-phone`).value;
+    
+    // Additional fields based on role
+    const clubName = selectedRole === 'club_manager' ? document.getElementById('manager-clubName').value : null;
+    const clubCode = selectedRole !== 'club_manager' ? document.getElementById('member-clubCode').value : null;
+    
+    if (!email || !password || !firstName || !lastName || !phone) {
+        showMessage('Please fill in all required fields', 'signUpMessage');
+        hideLoading();
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showMessage('Passwords do not match', 'signUpMessage');
+        hideLoading();
+        return;
+    }
+
     try {
-        showLoading();
+        let clubData = null;
+        let clubId = null;
+
+        if (selectedRole !== 'club_manager') {
+            // Verify club code
+            try {
+                const clubDoc = await verifyClubCode(clubCode, selectedRole);
+                clubData = clubDoc.data();
+                clubId = clubDoc.id;
+            } catch (error) {
+                showMessage('Invalid club code', 'signUpMessage');
+                hideLoading();
+                return;
+            }
+        }
+
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        // Rest of your sign-up code...
+        const user = userCredential.user;
+        
+        // Create base user document
+        const baseUserData = {
+            email,
+            firstName,
+            lastName,
+            phoneNumber: phone,
+            role: selectedRole,
+            createdAt: new Date().toISOString()
+        };
+
+        // Create role-specific user data
+        let roleSpecificData = { ...baseUserData };
+
+        if (selectedRole === 'club_manager') {
+            // Create club document first
+            const clubRef = await addDoc(collection(db, "clubs"), {
+                name: clubName,
+                managerId: user.uid,
+                createdAt: new Date().toISOString(),
+                coachCode: generateRandomCode(),
+                rowerCode: generateRandomCode()
+            });
+            
+            roleSpecificData.clubId = clubRef.id;
+            roleSpecificData.clubName = clubName;
+            clubId = clubRef.id; // Set clubId for main user document
+            
+        } else if (selectedRole === 'coach') {
+            roleSpecificData.clubId = clubId;
+            roleSpecificData.assignedCrews = [];
+            roleSpecificData.specialties = [];
+            
+        } else if (selectedRole === 'rower') {
+            roleSpecificData.clubId = clubId;
+            roleSpecificData.crewId = null;
+            roleSpecificData.stats = {
+                weight: null,
+                height: null,
+                ergScores: [],
+                attendance: []
+            };
+            roleSpecificData.statsVisibility = {
+                weight: false,
+                height: false,
+                ergScores: false
+            };
+        }
+
+        console.log("Creating role-specific document...");
+        
+        // Store in role-specific collection (fix the path construction)
+        let rolePath;
+        if (selectedRole === 'club_manager') {
+            rolePath = 'managers';
+        } else if (selectedRole === 'coach') {
+            rolePath = 'coaches';
+        } else {
+            rolePath = 'rowers';
+        }
+
+        // Create the role-specific document using the correct alternating pattern
+        const roleDocRef = doc(collection(doc(collection(db, "users"), rolePath), "members"), user.uid);
+        await setDoc(roleDocRef, roleSpecificData);
+        console.log("Role-specific document created in:", `users/${rolePath}/members/${user.uid}`);
+
+        showMessage('Account Created Successfully', 'signUpMessage');
+        window.location.href = 'dashboard.html';
     } catch (error) {
-        // Error handling...
+        console.error("Error during registration:", error);
+        showMessage(error.message, 'signUpMessage');
     } finally {
         hideLoading();
     }
+});
+
+// Helper function to generate random codes
+function generateRandomCode() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 // Update the Google Sign In function
@@ -164,67 +313,6 @@ document.getElementById('googleSignIn').addEventListener('click', async () => {
             return;
         }
         showMessage('No account found. Please register or link your Google account in settings', 'signInMessage');
-    } finally {
-        hideLoading();
-    }
-});
-
-// Add this after your Firebase initialization
-const ROLES = {
-    CLUB_MANAGER: 'club_manager',
-    COACH: 'coach',
-    ROWER: 'rower'
-};
-
-// Update the registration function to match ibizzle777's simpler approach
-document.getElementById('submitSignUp').addEventListener('click', async (e) => {
-    e.preventDefault();
-    showLoading();
-    
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const phone = document.getElementById('phone').value;
-    
-    // Check if passwords match
-    if (password !== confirmPassword) {
-        showMessage('Passwords do not match', 'signUpMessage');
-        hideLoading();
-        return;
-    }
-
-    const auth = getAuth();
-    const db = getFirestore();
-
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        
-        // Store additional user data in Firestore - simplified userData object
-        const userData = {
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-            phoneNumber: phone,
-            role: 'club_manager'  // Set default role
-        };
-
-        showMessage('Account Created Successfully', 'signUpMessage');
-        
-        // Create user document in Firestore
-        const docRef = doc(db, "users", user.uid);
-        await setDoc(docRef, userData);
-        
-        window.location.href = 'dashboard.html';
-    } catch (error) {
-        if (error.code === 'auth/email-already-in-use') {
-            showMessage('Email Address Already Exists!', 'signUpMessage');
-        } else {
-            showMessage('Error creating account: ' + error.message, 'signUpMessage');
-            console.error("Error:", error);
-        }
     } finally {
         hideLoading();
     }
@@ -286,4 +374,17 @@ document.getElementById('forgotPassword').addEventListener('click', async (e) =>
     } finally {
         hideLoading();
     }
-}); 
+});
+
+// Update the registration function to properly check club codes
+async function verifyClubCode(code, role) {
+    const clubsRef = collection(db, "clubs");
+    const q = query(clubsRef, where(`${role}Code`, '==', code));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+        throw new Error('Invalid club code');
+    }
+    
+    return querySnapshot.docs[0];
+} 
