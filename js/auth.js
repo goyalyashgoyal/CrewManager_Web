@@ -37,6 +37,23 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth();
 const db = getFirestore();
 
+// Check if user is already logged in and redirect if on login page
+onAuthStateChanged(auth, async (user) => {
+    // Only check and redirect if we're on the login/index page
+    if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+        if (user) {
+            // User is signed in, redirect to dashboard
+            window.location.href = 'dashboard.html';
+            return; // Stop further execution
+        } else {
+            // User is not signed in, show login form
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            userInfo.style.display = 'none';
+        }
+    }
+});
+
 // UI Elements
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
@@ -387,4 +404,13 @@ async function verifyClubCode(code, role) {
     }
     
     return querySnapshot.docs[0];
-} 
+}
+
+// Add this at the top of your auth.js file, right after Firebase initialization
+// Check if user is already logged in
+onAuthStateChanged(auth, (user) => {
+    // Only redirect if we're on the login page
+    if (user && window.location.pathname.endsWith('index.html')) {
+        window.location.href = 'dashboard.html';
+    }
+}); 

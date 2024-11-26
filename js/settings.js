@@ -57,6 +57,12 @@ onAuthStateChanged(auth, async (user) => {
             }
 
             if (userData) {
+                // Hide invitation codes tab for non-managers
+                const codesTab = document.querySelector('.settings-sidebar li[data-tab="codes"]');
+                if (userData.role !== 'club_manager') {
+                    codesTab.style.display = 'none';
+                }
+
                 // Profile data
                 document.getElementById('firstName').value = userData.firstName || '';
                 document.getElementById('lastName').value = userData.lastName || '';
