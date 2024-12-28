@@ -85,6 +85,15 @@ onAuthStateChanged(auth, async (user) => {
 
                 // Load invitation codes if user is a manager
                 await loadClubCodes(userData);
+
+                // Initialize stats visibility toggle with the stored value
+                const statsToggle = document.getElementById('statsVisibilityToggle');
+                if (statsToggle && userData) {
+                    const isEnabled = userData.statsVisibility?.enabled ?? true;
+                    if (isEnabled) {
+                        statsToggle.classList.add('active');
+                    }
+                }
             }
         } catch (error) {
             console.error("Error loading user data:", error);
@@ -361,4 +370,50 @@ async function generateNewCode(type) {
         console.error("Error generating new code:", error);
         alert('Error generating new code');
     }
-} 
+}
+
+// Add this event listener for the stats visibility toggle
+document.getElementById('statsVisibilityToggle')?.addEventListener('click', async () => {
+    const toggle = document.getElementById('statsVisibilityToggle');
+    const newState = !toggle.classList.contains('active');
+    
+    try {
+        showLoading();
+        const user = auth.currentUser;
+        if (!user) throw new Error('No user logged in');
+
+        // Find the user's role document
+        const roles = ['managers', 'coaches', 'rowers'];
+        let userDocRef = null;
+
+        for (const role of roles) {
+            const docRef = doc(collection(doc(collection(db, "users"), role), "members"), user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                userDocRef = docRef;
+                break;
+            }
+        }
+
+        if (!userDocRef) throw new Error('User document not found');
+
+        // Update the visibility setting in Firestore
+        await updateDoc(userDocRef, {
+            'statsVisibility.enabled': newState
+        });
+
+        // Update toggle state
+        if (newState) {
+            toggle.classList.add('active');
+        } else {
+            toggle.classList.remove('active');
+        }
+
+        showMessage('Stats visibility updated successfully', 'success');
+    } catch (error) {
+        console.error('Error updating stats visibility:', error);
+        showMessage('Failed to update stats visibility', 'error');
+    } finally {
+        hideLoading();
+    }
+}); 

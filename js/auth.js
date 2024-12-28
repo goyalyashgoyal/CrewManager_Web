@@ -254,18 +254,19 @@ document.getElementById('submitSignUp').addEventListener('click', async (e) => {
             roleSpecificData.specialties = [];
             
         } else if (selectedRole === 'rower') {
-            roleSpecificData.clubId = clubId;
-            roleSpecificData.crewId = null;
-            roleSpecificData.stats = {
-                weight: null,
-                height: null,
-                ergScores: [],
-                attendance: []
-            };
-            roleSpecificData.statsVisibility = {
-                weight: false,
-                height: false,
-                ergScores: false
+            roleSpecificData = {
+                ...roleSpecificData,
+                clubId: clubId,
+                crewId: null,
+                stats: {
+                    weight: null,
+                    height: null,
+                    ergScores: [],
+                    attendance: []
+                },
+                statsVisibility: {
+                    enabled: true  // Initialize to true by default
+                }
             };
         }
 
@@ -413,4 +414,29 @@ onAuthStateChanged(auth, (user) => {
     if (user && window.location.pathname.endsWith('index.html')) {
         window.location.href = 'dashboard.html';
     }
-}); 
+});
+
+// When creating a new rower account
+async function createRowerAccount(userData) {
+    try {
+        // ... existing code ...
+
+        await setDoc(userDocRef, {
+            ...userData,
+            role: 'rower',
+            statsVisibility: {
+                enabled: true  // Set default to true
+            },
+            stats: {
+                weight: null,
+                height: null,
+                ergScores: []
+            }
+        });
+
+        // ... rest of existing code ...
+    } catch (error) {
+        console.error("Error creating rower account:", error);
+        throw error;
+    }
+} 
