@@ -23,13 +23,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js"
 
 const firebaseConfig = {
-  apiKey: "AIzaSyArOKhK4-12NG6YZKCX-U6_ioCCe2uLt6Y",
-  authDomain: "crewmanagerdata.firebaseapp.com",
-  projectId: "crewmanagerdata",
-  storageBucket: "crewmanagerdata.firebasestorage.app",
-  messagingSenderId: "1000289169555",
-  appId: "1:1000289169555:web:3490e14c71c4596a2e1d66",
-  measurementId: "G-S8W55PNF3T"
+    apiKey: "AIzaSyBoaQHMJ--0C1EVyp8AkMgRLyrYs6Z_uho",
+    authDomain: "crewmanager-d10b4.firebaseapp.com",
+    projectId: "crewmanager-d10b4",
+    storageBucket: "crewmanager-d10b4.firebasestorage.app",
+    messagingSenderId: "368087649369",
+    appId: "1:368087649369:web:9f90e9abba4e46443bf548",
+    measurementId: "G-HK3Z098ZLL"
 };
 
 // Initialize Firebase
@@ -254,19 +254,18 @@ document.getElementById('submitSignUp').addEventListener('click', async (e) => {
             roleSpecificData.specialties = [];
             
         } else if (selectedRole === 'rower') {
-            roleSpecificData = {
-                ...roleSpecificData,
-                clubId: clubId,
-                crewId: null,
-                stats: {
-                    weight: null,
-                    height: null,
-                    ergScores: [],
-                    attendance: []
-                },
-                statsVisibility: {
-                    enabled: true  // Initialize to true by default
-                }
+            roleSpecificData.clubId = clubId;
+            roleSpecificData.crewId = null;
+            roleSpecificData.stats = {
+                weight: null,
+                height: null,
+                ergScores: [],
+                attendance: []
+            };
+            roleSpecificData.statsVisibility = {
+                weight: false,
+                height: false,
+                ergScores: false
             };
         }
 
@@ -414,29 +413,4 @@ onAuthStateChanged(auth, (user) => {
     if (user && window.location.pathname.endsWith('index.html')) {
         window.location.href = 'dashboard.html';
     }
-});
-
-// When creating a new rower account
-async function createRowerAccount(userData) {
-    try {
-        // ... existing code ...
-
-        await setDoc(userDocRef, {
-            ...userData,
-            role: 'rower',
-            statsVisibility: {
-                enabled: true  // Set default to true
-            },
-            stats: {
-                weight: null,
-                height: null,
-                ergScores: []
-            }
-        });
-
-        // ... rest of existing code ...
-    } catch (error) {
-        console.error("Error creating rower account:", error);
-        throw error;
-    }
-} 
+}); 

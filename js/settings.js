@@ -16,13 +16,13 @@ import {
 import { getFirestore, doc, getDoc, updateDoc, collection } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyArOKhK4-12NG6YZKCX-U6_ioCCe2uLt6Y",
-  authDomain: "crewmanagerdata.firebaseapp.com",
-  projectId: "crewmanagerdata",
-  storageBucket: "crewmanagerdata.firebasestorage.app",
-  messagingSenderId: "1000289169555",
-  appId: "1:1000289169555:web:3490e14c71c4596a2e1d66",
-  measurementId: "G-S8W55PNF3T"
+    apiKey: "AIzaSyBoaQHMJ--0C1EVyp8AkMgRLyrYs6Z_uho",
+    authDomain: "crewmanager-d10b4.firebaseapp.com",
+    projectId: "crewmanager-d10b4",
+    storageBucket: "crewmanager-d10b4.firebasestorage.app",
+    messagingSenderId: "368087649369",
+    appId: "1:368087649369:web:9f90e9abba4e46443bf548",
+    measurementId: "G-HK3Z098ZLL"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -85,15 +85,6 @@ onAuthStateChanged(auth, async (user) => {
 
                 // Load invitation codes if user is a manager
                 await loadClubCodes(userData);
-
-                // Initialize stats visibility toggle with the stored value
-                const statsToggle = document.getElementById('statsVisibilityToggle');
-                if (statsToggle && userData) {
-                    const isEnabled = userData.statsVisibility?.enabled ?? true;
-                    if (isEnabled) {
-                        statsToggle.classList.add('active');
-                    }
-                }
             }
         } catch (error) {
             console.error("Error loading user data:", error);
@@ -370,6 +361,9 @@ async function generateNewCode(type) {
         console.error("Error generating new code:", error);
         alert('Error generating new code');
     }
+<<<<<<< HEAD
+} 
+=======
 }
 
 // Add this event listener for the stats visibility toggle
@@ -417,3 +411,4 @@ document.getElementById('statsVisibilityToggle')?.addEventListener('click', asyn
         hideLoading();
     }
 }); 
+>>>>>>> parent of dc91b61 (new api key)
