@@ -1,15 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
 import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyBoaQHMJ--0C1EVyp8AkMgRLyrYs6Z_uho",
-    authDomain: "crewmanager-d10b4.firebaseapp.com",
-    projectId: "crewmanager-d10b4",
-    storageBucket: "crewmanager-d10b4.firebasestorage.app",
-    messagingSenderId: "368087649369",
-    appId: "1:368087649369:web:9f90e9abba4e46443bf548",
-    measurementId: "G-HK3Z098ZLL"
-};
+import firebaseConfig from './firebaseconfig';
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth();
